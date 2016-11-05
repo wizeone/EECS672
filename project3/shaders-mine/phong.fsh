@@ -36,7 +36,7 @@ vec4 evaluateLightingModel()
 	else if (projType == 1 || projType == 2)
 		vTop = vec3(0.0, 0.0, 1.0);
 
-	if(dot(pvaIn.ecUnitNormal, vTop) < 0)
+	if (dot(pvaIn.ecUnitNormal, vTop) < 0)
 		ec_Top = -pvaIn.ecUnitNormal;
 
 	for (int i = 0; i < numLights; i++){

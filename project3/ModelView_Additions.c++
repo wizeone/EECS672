@@ -13,9 +13,11 @@ void ModelView::addToGlobalPan(double dxInLDS, double dyInLDS, double dzInLDS)
 
 void ModelView::addToGlobalRotationDegrees(double rx, double ry, double rz)
 {
-	std::cout << "For project 3, you must implement ModelView::addToGlobalRotationDegrees in ModelView_Additions.c++\n";
-	// TODO: 1. UPDATE dynamic_view
-	// TODO: 2. Use dynamic_view in ModelView::getMatrices
+	cryph::Matrix4x4 rotationX = cryph::Matrix4x4::xRotationDegrees(ry);
+	cryph::Matrix4x4 rotationY = cryph::Matrix4x4::xRotationDegrees(rx);
+	cryph::Matrix4x4 rotationZ = cryph::Matrix4x4::xRotationDegrees(rz);
+
+	dynamic_view = rotationX * rotationY * rotationZ * dynamic_view;
 }
 
 void ModelView::getMatrices(cryph::Matrix4x4& mc_ec, cryph::Matrix4x4& ec_lds)
@@ -39,8 +41,7 @@ void ModelView::getMatrices(cryph::Matrix4x4& mc_ec, cryph::Matrix4x4& ec_lds)
 	//    b) For project 3: mc_ec = dynamic_view * M_ECu
 	//
 
-	cryph::Matrix4x4 M_ECu = cryph::Matrix4x4::lookAt(ModelView::eye,
-		ModelView::center, ModelView::up);
+	cryph::Matrix4x4 M_ECu = cryph::Matrix4x4::lookAt(eye, center, up);
 	mc_ec = dynamic_view * M_ECu;
 
 	// 2. Create the ec_lds matrix:
@@ -87,16 +88,30 @@ void ModelView::getMatrices(cryph::Matrix4x4& mc_ec, cryph::Matrix4x4& ec_lds)
 	// so it can be used as indicated in the two calls. Since the array is immediately
 	// copied by glUniformMatrix to the GPU, "mat" can be reused as indicated.)
 
-	double maxDelta = 0.0; // TODO: compute this as just described.
-	double halfWidth = 0.5 * maxDelta;
+	// double maxDelta = 0.0; // TODO: compute this as just described.
+	// double halfWidth = 0.5 * maxDelta;
 
-	double ecXmin = -halfWidth * dynamic_zoom, ecXmax = halfWidth * dynamic_zoom;
-	double ecYmin = -halfWidth * dynamic_zoom, ecYmax = halfWidth * dynamic_zoom;
+	double xmin = mcRegionOfInterest[0];
+	double xmax = mcRegionOfInterest[1];
+	double ymin = mcRegionOfInterest[2];
+	double ymax = mcRegionOfInterest[3];
+	double zmin = mcRegionOfInterest[4];
+	double zmax = mcRegionOfInterest[5];
 
-	// TODO:
-	//    Calculate vAR for matchAspectRatio
-	double vAR = ??;
-	ModelView::matchAspectRatio(ecXmin, ecXmax, ecYmin, ecYmax, vAR)
+	double xmid = (xmin + xmax) / 2;
+	double ymid = (ymin + ymax) / 2;
+	double zmid = (zmin + zmax) / 2;
+
+	double rad = sqrt(pow((xmax - xmin), 2) + pow((ymax - ymin), 2) + pow((zmax - zmin), 2))
+		* dynamic_zoomScale;
+
+	double ecXmin = xmid - rad;
+	double ecXmax = xmid + rad;
+	double ecYmin = ymid - rad;
+	double ecYmax = ymid + rad;
+
+	double vAR = Controller::getCurrentController()->getViewportAspectRatio();
+	ModelView::matchAspectRatio(ecXmin, ecXmax, ecYmin, ecYmax, vAR);
 
 	if (ModelView::projType == ORTHOGONAL)
 		ec_lds = cryph::Matrix4x4::orthogonal(ecXmin, ecXmax, ecYmin, ecYmax,
@@ -112,7 +127,9 @@ void ModelView::getMatrices(cryph::Matrix4x4& mc_ec, cryph::Matrix4x4& ec_lds)
 
 void ModelView::scaleGlobalZoom(double multiplier)
 {
-	dynamic_zoomScale *= multiplier;
-	// TODO: Project 3: Use dynamic_zoomScale in ModelView::getMatrices
-	std::cout << "For project 3, you must implement ModelView::scaleGlobalZoom in ModelView_Additions.c++\n";
+	if (multiplier != 0)
+		dynamic_zoomScale *= multiplier;
+	else
+		std::cout << "Max zoom reached.\n";
+
 }

@@ -41,11 +41,24 @@ void SceneElement::establishLightingEnvironment()
 {
 	// This should set:
 	// "actualNumLights", "ecLightPosition", "lightStrength", "globalAmbient"
+	//TODO:
+
+
+	// // Now send the EC geometric description along with the non-geometric data:
+  //   int numLights = 3; // or however many you are using
+  //   glUniform4fv(shaderIF->ppuLoc("p_ecLightPos"), numLights, lightPositionInEC);
+  //   glUniform3fv(shaderIF->ppuLoc("lightStrength"), numLights, lightStrength);
+  //   glUniform1i(shaderIF->ppuLoc("actualNumLights"), numLights);
+	//
+  //   glUniform3fv(shaderIF->ppuLoc("globalAmbient"), 1, ambientStrength);
 }
 
 void SceneElement::establishMaterial()
 {
-	glUniform3fv(shaderIF->ppuLoc("kd"), 1, matl.kd);
+	glUniform3fv(shaderIF->ppuLoc("ka"), 1, matl.ka);
+    glUniform3fv(shaderIF->ppuLoc("kd"), 1, matl.kd);
+    glUniform3fv(shaderIF->ppuLoc("ks"), 1, matl.ks);
+    glUniform1f (shaderIF->ppuLoc("shininess"), matl.shininess); // The "m" exponent on the specular term
 }
 
 void SceneElement::establishTexture()
